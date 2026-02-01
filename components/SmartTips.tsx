@@ -7,11 +7,30 @@ interface SmartTipsProps {
   time: Date;
 }
 
+const LOCAL_TIPS = [
+  "সময়ের সঠিক ব্যবহারই সফলতার মূল চাবিকাঠি।",
+  "আজকের কাজ কালকের জন্য ফেলে রাখবেন না।",
+  "ছোট ছোট লক্ষ্য স্থির করুন এবং সেগুলো পূরণ করুন।",
+  "প্রতিদিন অন্তত ১০ মিনিট বই পড়ার অভ্যাস করুন।",
+  "সকালবেলা পরিকল্পনা করলে সারা দিন ভালো কাটে।",
+  "পরিশ্রম ও ধৈর্য সাফল্যের দুই মূল মন্ত্র।",
+  "বিরতি নিন, এতে কাজের গতি বাড়ে।"
+];
+
 const SmartTips: React.FC<SmartTipsProps> = ({ time }) => {
   const [tip, setTip] = useState<string>('লোড হচ্ছে...');
   const [loading, setLoading] = useState(true);
 
   const fetchTip = async () => {
+    const randomLocalTip = LOCAL_TIPS[Math.floor(Math.random() * LOCAL_TIPS.length)];
+    
+    // Check if API key exists
+    if (!process.env.API_KEY || process.env.API_KEY === 'undefined') {
+      setTip(randomLocalTip);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -32,10 +51,10 @@ const SmartTips: React.FC<SmartTipsProps> = ({ time }) => {
         contents: prompt,
       });
 
-      setTip(response.text || 'সময়ের সঠিক ব্যবহারই সফলতার মূল চাবিকাঠি।');
+      setTip(response.text || randomLocalTip);
     } catch (error) {
       console.error('Error fetching tip:', error);
-      setTip('সময় খুব মূল্যবান, একে সঠিকভাবে কাজে লাগান।');
+      setTip(randomLocalTip);
     } finally {
       setLoading(false);
     }
