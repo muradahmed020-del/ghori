@@ -8,7 +8,9 @@ import {
   BrainCircuit, 
   Settings, 
   Calendar,
-  Zap
+  Zap,
+  Monitor,
+  X
 } from 'lucide-react';
 import DigitalClock from './components/DigitalClock';
 import AnalogClock from './components/AnalogClock';
@@ -19,11 +21,23 @@ import SmartTips from './components/SmartTips';
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'clock' | 'stopwatch' | 'timer'>('clock');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isWallpaperMode, setIsWallpaperMode] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Listen for Escape key to exit wallpaper mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isWallpaperMode) {
+        setIsWallpaperMode(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isWallpaperMode]);
 
   const bnDate = currentTime.toLocaleDateString('bn-BD', { 
     weekday: 'long', 
@@ -31,6 +45,34 @@ const App: React.FC = () => {
     month: 'long', 
     day: 'numeric' 
   });
+
+  if (isWallpaperMode) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center relative overflow-hidden animate-in fade-in duration-1000">
+        {/* Animated Background Orbs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+        
+        <button 
+          onClick={() => setIsWallpaperMode(false)}
+          className="absolute top-8 right-8 p-3 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-all z-50 group"
+          title="বন্ধ করুন (Esc)"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        <div className="flex flex-col items-center gap-16 scale-110 md:scale-125 lg:scale-150">
+          <AnalogClock time={currentTime} />
+          <DigitalClock time={currentTime} />
+          <div className="text-slate-500 font-medium tracking-widest mt-4 opacity-50">{bnDate}</div>
+        </div>
+
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-600 text-xs tracking-widest uppercase opacity-30">
+          ফুলস্ক্রিন ভিউর জন্য F11 চাপুন
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center p-4 md:p-8 relative overflow-hidden">
@@ -81,6 +123,16 @@ const App: React.FC = () => {
             >
               <TimerIcon className="w-5 h-5" />
               <span className="font-semibold">টাইমার</span>
+            </button>
+            
+            <div className="h-[1px] bg-slate-800 my-1 mx-4" />
+
+            <button 
+              onClick={() => setIsWallpaperMode(true)}
+              className="flex items-center gap-4 px-6 py-4 rounded-2xl text-indigo-400 hover:bg-indigo-500/10 transition-all group"
+            >
+              <Monitor className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="font-semibold">ওয়ালপেপার মোড</span>
             </button>
           </nav>
 
